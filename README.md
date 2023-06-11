@@ -25,8 +25,8 @@ Users should be able to:
 
 ### Links
 
-- Solution URL: [Add solution URL here](https://your-solution-url.com)
-- Live Site URL: [Add live site URL here](https://your-live-site-url.com)
+- Solution URL: [https://github.com/deep0133/REST-Countries-API-.git](https://github.com/deep0133/REST-Countries-API-.git)
+- Live Site URL: [https://countriesflagsapi.netlify.app/detail/Bermuda](https://countriesflagsapi.netlify.app)
 
 ### Built with
 
