@@ -1,68 +1,62 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import DataLoading from "./loading/DataLoading";
-import oldData from "../assets/data.json";
+import { fetchData } from "../redux/action";
 
-function Main({ text, input, mode, setDetails }) {
+function Main({ text, input, mode }) {
   const [country, setCountry] = useState("");
 
   const [region, setRegion] = useState("");
-  const [allRegion, setAllRegion] = useState([]);
-  const [data, setData] = useState([]);
+  const [selectedData, setSelectedData] = useState([]);
 
-  const [loading, setLoading] = useState(false);
+  const { loading, data, allRegion } = useSelector((state) => state.data);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    async function fetchData() {
-      const api = "https://restcountries.com/v3.1/all";
-      try {
-        setLoading(true);
-        let response = await fetch(api);
-        response = await response.json();
-        setData(response);
-        // remove duplicate values:
+    fetchData(dispatch);
+  }, [dispatch]);
 
-        const uniqueRegions = await [
-          ...new Set(response.map((obj) => obj.region)),
-        ];
-        console.log(uniqueRegions);
-        setAllRegion(uniqueRegions);
-      } catch (error) {
-        console.log("Error : " + error);
-        setData(oldData);
-        const uniqueRegions = [...new Set(oldData.map((obj) => obj.region))];
-        console.log(uniqueRegions);
-        setAllRegion(oldData);
-      }
-      setLoading(false);
+  useEffect(() => {
+    if (!loading) {
+      setSelectedData(data);
     }
-    fetchData();
-  }, []);
+  }, [loading]);
 
-  // Filter by region:
+  // Filter by Region and Name:
   async function SearchByRegionAndCountryName(searchThis, byThis) {
-    let api = `https://restcountries.com/v3.1/${byThis}/${searchThis}`;
     try {
-      setLoading(true);
-      let response = await fetch(api);
-      response = await response.json();
-      setData(response);
+      // setLoading(true);
+      let filteredData;
+
+      if (byThis === "region") {
+        filteredData = data.filter((obj) =>
+          obj[byThis].toLowerCase().includes(searchThis.toLowerCase())
+        );
+      } else {
+        filteredData = data.filter((obj) =>
+          obj[byThis].common.toLowerCase().includes(searchThis.toLowerCase())
+        );
+      }
+      setSelectedData(filteredData);
     } catch (error) {
-      console.log("Error : " + error);
+      console.error("Error : " + error);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
     if (country.length > 0) {
       SearchByRegionAndCountryName(country, "name");
+    } else {
+      setSelectedData(data);
     }
   }, [country]);
 
   const navigate = useNavigate();
 
-  const handleCardClick = (name) => {
+  const handleCardClick = async (name) => {
     navigate(`/detail/${name}`);
   };
 
@@ -114,12 +108,18 @@ function Main({ text, input, mode, setDetails }) {
             value={region}
             onChange={async (e) => {
               setRegion(e.target.value);
-              SearchByRegionAndCountryName(e.target.value, "region");
+              if (e.target.value === "Filter by Region") {
+                setSelectedData(data);
+              } else {
+                SearchByRegionAndCountryName(e.target.value, "region");
+              }
             }}
             className={`list-none ${
               input + " " + text
             } w-full outline-none space-y-2 p-3 px-5  overflow-auto z-50`}>
-            <option value="Filter by Region">Filter by Region</option>
+            <option value="Filter by Region" selected>
+              Filter by Region
+            </option>
             {allRegion &&
               allRegion.length > 0 &&
               allRegion.map((region, index) => (
@@ -139,18 +139,17 @@ function Main({ text, input, mode, setDetails }) {
             {" "}
             <DataLoading mode={mode} />
           </div>
-        ) : data && data.length > 0 ? (
-          data.map((country, index) => {
+        ) : selectedData && selectedData.length > 0 ? (
+          selectedData.map((country, index) => {
             return (
               <div
                 key={index}
                 onClick={() => {
-                  setDetails(country);
                   handleCardClick(country.name.common);
                 }}
-                className={`card col-span-1 hover:scale-105 hover:cursor-pointer rounded-md ${input}`}>
+                className={`card col-span-1 hover:scale-105 duration-300 hover:cursor-pointer rounded-md ${input}`}>
                 <img
-                  src={country.flags.png}
+                  src={country.flags.png || country.flags.svg}
                   className="rounded-t-md z-0 w-full h-40 object-cover"
                   alt="flag"
                 />
@@ -160,16 +159,16 @@ function Main({ text, input, mode, setDetails }) {
                   </h2>
                   <div className="details font-medium">
                     <p className="">
-                      Population :
+                      <strong>Population:</strong>{" "}
                       <span className=" font-normal opacity-75">
                         {country.population}
                       </span>
                     </p>
                     <p>
-                      <strong>Region</strong> :{country.region}
+                      <strong>Region:</strong> {country.region}
                     </p>
                     <p>
-                      <strong>Capital</strong> : {country.capital}
+                      <strong>Capital:</strong> {country.capital}
                     </p>
                   </div>
                 </div>

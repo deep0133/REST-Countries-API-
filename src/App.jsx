@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import Header from "./components/Header.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
+import Header from "./components/Header.jsx";
 import Main from "./components/Main.jsx";
 import Detail from "./components/Detail.jsx";
 
@@ -11,10 +11,8 @@ function App() {
   const [text, setText] = useState("text-[#151719]");
   const [input, setInput] = useState("bg-[#ffffff]");
   const [bg, setBg] = useState("bg-[#fafafa]");
-  const [details, setDetails] = useState({});
 
   const setModeHandler = () => {
-    console.log("set Mode");
     if (mode === "light") {
       // set dark:
       setText("text-[hsl(0,_0%,_100%)]");
@@ -45,21 +43,11 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={
-                <Main
-                  bg={bg}
-                  input={input}
-                  text={text}
-                  mode={mode}
-                  setDetails={setDetails}
-                />
-              }
+              element={<Main bg={bg} input={input} text={text} mode={mode} />}
             />
             <Route
               path="/detail/:name"
-              element={
-                <Detail input={input} text={text} bg={bg} details={details} />
-              }
+              element={<Detail input={input} text={text} bg={bg} />}
             />
           </Routes>
         </div>
